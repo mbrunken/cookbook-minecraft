@@ -1,4 +1,5 @@
 default['minecraft']['user']                = 'minecraft'
+default['minecraft']['group']                = 'minecraft'
 default['minecraft']['install_dir']         = '/srv/minecraft'
 default['minecraft']['base_url']            = 'https://s3.amazonaws.com/MinecraftDownload/launcher'
 default['minecraft']['jar']                 = 'minecraft_server.jar'
@@ -12,6 +13,9 @@ default['minecraft']['ipv6']                = false
 
 default['minecraft']['mcrcon']['version']   = '0.0.5'
 default['minecraft']['mcrcon']['bin_path']  = '/usr/local/bin'
+
+default['minecraft']['lograte']['frequency']  = 'daily'
+default['minecraft']['lograte']['rotate']     = '30'
 
 default['minecraft']['banned-ips']          = []
 default['minecraft']['banned-players']      = []

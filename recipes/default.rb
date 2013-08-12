@@ -26,13 +26,16 @@
 
 include_recipe 'runit'
 include_recipe 'java::default'
+include_recipe 'logrotate'
 
 jar_name = "#{node['minecraft']['jar']}.#{node['minecraft']['version']}.jar"
 minecraft_jar = "#{Chef::Config['file_cache_path']}/minecraft_server.jar"
+uid = default['minecraft']['user']
+gid = default['minecraft']['group']
 
 node.default['minecraft']['jar_name'] = jar_name
 
-user node['minecraft']['user'] do
+user uid do
   system true
   comment 'Minecraft Server'
   home node['minecraft']['install_dir']
@@ -46,15 +49,15 @@ log "Using #{jar_name}, stored locally as #{minecraft_jar} and fetched from #{so
 remote_file minecraft_jar do
   source "#{source_url}"
   checksum node['minecraft']['checksum']
-  owner node['minecraft']['user']
-  group node['minecraft']['user']
+  owner uid
+  group gid
   mode '0644'
   action :create_if_missing
 end
 
 directory node['minecraft']['install_dir'] do
-  owner node['minecraft']['user']
-  group node['minecraft']['user']
+  owner uid
+  group gid
   mode '0755'
   action :create
   recursive true
@@ -70,8 +73,8 @@ end
    banned-players.txt white-list.txt].each do |template|
   template "#{node['minecraft']['install_dir']}/#{template}" do
     source "#{template}.erb"
-    owner node['minecraft']['user']
-    group node['minecraft']['user']
+    owner uid
+    group gid
     mode 0644
     action :create
     notifies :restart, 'runit_service[minecraft]' if node['minecraft']['auto_restart']
@@ -83,6 +86,14 @@ runit_service "minecraft"
 service 'minecraft' do
   supports :status => true, :restart => true, :reload => true
   reload_command "#{node['runit']['sv_bin']} hup #{node['runit']['service_dir']}/minecraft"
+end
+
+logrotate_app "minecraft" do
+  cookbook "logrotate"
+  path "#{node['minecraft']['install_dir']}/server.log"
+  frequency node['minecraft']['logrotate']['frequency']
+  rotate node['minecraft']['logrotate']['rotate']
+  create "644 #{uid} #{gid}"
 end
 
 if node['minecraft']['use_rcon']
