@@ -75,6 +75,6 @@ end
     group node['minecraft']['user']
     mode 0644
     action :create
-    notifies :restart, 'runit_service[minecraft]'
+    notifies :restart, 'runit_service[minecraft]' if node['minecraft']['auto_restart']
   end
 end
