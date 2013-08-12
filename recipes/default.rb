@@ -24,8 +24,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-include_recipe 'java::default'
 include_recipe 'runit'
+include_recipe 'java::default'
 
 minecraft_jar = "#{Chef::Config['file_cache_path']}/#{node['minecraft']['jar']}"
 
@@ -56,8 +56,15 @@ end
 
 execute 'copy-minecraft_server.jar' do
   cwd node['minecraft']['install_dir']
-  command 'cp -p #{minecraft_jar} .'
+  command "cp -p #{minecraft_jar} ."
   creates "#{node['minecraft']['install_dir']}/minecraft_server.jar"
+end
+
+runit_service 'minecraft'
+
+service 'minecraft' do
+  supports :status => true, :restart => true, :reload => true
+  reload_command "#{node['runit']['sv_bin']} hup #{node['runit']['service_dir']}/minecraft"
 end
 
 %w[ops.txt server.properties banned-ips.txt
@@ -70,11 +77,4 @@ end
     action :create
     notifies :restart, 'runit_service[minecraft]'
   end
-end
-
-runit_service 'minecraft'
-
-service 'minecraft' do
-  supports :status => true, :restart => true, :reload => true
-  reload_command "#{node['runit']['sv_bin']} hup #{node['runit']['service_dir']}/minecraft"
 end
