@@ -27,7 +27,10 @@
 include_recipe 'runit'
 include_recipe 'java::default'
 
-minecraft_jar = "#{Chef::Config['file_cache_path']}/#{node['minecraft']['jar']}"
+jar_name = "#{node['minecraft']['jar']}.#{node['minecraft']['version']}.jar"
+minecraft_jar = "#{Chef::Config['file_cache_path']}/minecraft_server.jar"
+
+node.default['minecraft']['jar_name'] = jar_name
 
 user node['minecraft']['user'] do
   system true
@@ -37,8 +40,11 @@ user node['minecraft']['user'] do
   action :create
 end
 
+source_url = "#{node['minecraft']['base_url']}/#{node['minecraft']['version']}/#{jar_name}"
+log "Using #{jar_name}, stored locally as #{minecraft_jar} and fetched from #{source_url}"
+
 remote_file minecraft_jar do
-  source "#{node['minecraft']['base_url']}/#{node['minecraft']['jar']}"
+  source "#{source_url}"
   checksum node['minecraft']['checksum']
   owner node['minecraft']['user']
   group node['minecraft']['user']
@@ -57,14 +63,7 @@ end
 execute 'copy-minecraft_server.jar' do
   cwd node['minecraft']['install_dir']
   command "cp -p #{minecraft_jar} ."
-  creates "#{node['minecraft']['install_dir']}/minecraft_server.jar"
-end
-
-runit_service 'minecraft'
-
-service 'minecraft' do
-  supports :status => true, :restart => true, :reload => true
-  reload_command "#{node['runit']['sv_bin']} hup #{node['runit']['service_dir']}/minecraft"
+  creates "#{node['minecraft']['install_dir']}/#{jar_name}"
 end
 
 %w[ops.txt server.properties banned-ips.txt
@@ -77,4 +76,11 @@ end
     action :create
     notifies :restart, 'runit_service[minecraft]' if node['minecraft']['auto_restart']
   end
+end
+
+runit_service "minecraft"
+
+service 'minecraft' do
+  supports :status => true, :restart => true, :reload => true
+  reload_command "#{node['runit']['sv_bin']} hup #{node['runit']['service_dir']}/minecraft"
 end
