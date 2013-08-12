@@ -84,3 +84,7 @@ service 'minecraft' do
   supports :status => true, :restart => true, :reload => true
   reload_command "#{node['runit']['sv_bin']} hup #{node['runit']['service_dir']}/minecraft"
 end
+
+if node['minecraft']['use_rcon']
+  include_recipe 'minecraft::mcrcon'
+end

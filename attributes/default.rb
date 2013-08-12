@@ -4,10 +4,14 @@ default['minecraft']['base_url']            = 'https://s3.amazonaws.com/Minecraf
 default['minecraft']['jar']                 = 'minecraft_server.jar'
 default['minecraft']['checksum']            = '7a1abdac5d412b7eebefd84030d40c1591c17325801dba9cbbeb3fdf3c374553'
 default['minecraft']['auto_restart']        = false
+default['minecraft']['use_rcon']            = true
 
 default['minecraft']['xms']                 = '512M'
 default['minecraft']['xmx']                 = '512M'
 default['minecraft']['ipv6']                = false
+
+default['minecraft']['mcrcon']['version']   = '0.0.5'
+default['minecraft']['mcrcon']['bin_path']  = '/usr/local/bin'
 
 default['minecraft']['banned-ips']          = []
 default['minecraft']['banned-players']      = []
@@ -21,7 +25,13 @@ default['minecraft']['properties']['enable-query']        = false
 default['minecraft']['properties']['allow-flight']        = false
 default['minecraft']['properties']['server-port']         = 25565
 default['minecraft']['properties']['level-type']          = 'DEFAULT'
-default['minecraft']['properties']['enable_rcon']         = false
+if node['minecraft']['use_rcon']
+  default['minecraft']['properties']['enable-rcon']         = true
+  default['minecraft']['properties']['enable.port']         = 25575
+  default['minecraft']['properties']['enable.password']     = ""
+else
+  default['minecraft']['properties']['enable-rcon']         = false
+end
 default['minecraft']['properties']['level-seed']          = ''
 default['minecraft']['properties']['server-ip']           = ''
 default['minecraft']['properties']['max-build-height']    = 256
