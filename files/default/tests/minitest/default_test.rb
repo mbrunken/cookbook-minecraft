@@ -20,8 +20,4 @@ describe_recipe 'minecraft::default' do
   it 'ensures minecraft is running' do
     service('minecraft').must_be_running
   end
-
-  it 'ensures world file is generated' do
-    assert_directory '/srv/minecraft/world', 'minecraft', 'minecraft', '755'
-  end
 end
