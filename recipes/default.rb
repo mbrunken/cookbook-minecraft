@@ -27,7 +27,7 @@
 include_recipe 'java::default'
 include_recipe 'runit'
 
-minecraft_jar = "#{Chef::Config['file_cache_path']}/#{node['minecraft']['jar']}"
+minecraft_jar = "/tmp/minecraft_server.jar"
 
 user node['minecraft']['user'] do
   system true
@@ -43,7 +43,7 @@ remote_file minecraft_jar do
   owner node['minecraft']['user']
   group node['minecraft']['user']
   mode '0644'
-  action :create_if_missing
+  action :create
 end
 
 directory node['minecraft']['install_dir'] do
@@ -56,9 +56,10 @@ end
 
 execute 'copy-minecraft_server.jar' do
   cwd node['minecraft']['install_dir']
-  command "cp -p #{minecraft_jar} ."
-  creates "#{node['minecraft']['install_dir']}/minecraft_server.jar"
+  command "cp -p #{minecraft_jar} #{node['minecraft']['jar']}"
+  creates "#{node['minecraft']['install_dir']}/#{node['minecraft']['jar']}"
 end
+
 
 %w[ops.txt server.properties banned-ips.txt
    banned-players.txt white-list.txt].each do |template|
@@ -72,9 +73,12 @@ end
   end
 end
 
+
 runit_service 'minecraft'
 
 service 'minecraft' do
   supports :status => true, :restart => true, :reload => true
   reload_command "#{node['runit']['sv_bin']} hup #{node['runit']['service_dir']}/minecraft"
 end
+
+
